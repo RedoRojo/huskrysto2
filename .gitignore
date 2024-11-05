@@ -1,0 +1,8 @@
+node_modules
+.cache
+dist
+.parcel-cache
+/coverage
+.DS_Store
+./script/report.json
+./husky/_

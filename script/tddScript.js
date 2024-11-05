@@ -1,0 +1,67 @@
+import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+import path from 'path';
+
+const COMMAND = 'npm run test-export-json';
+
+function runCommand(command) {
+  return new Promise((resolve, reject) => {
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error executing command: ${stderr}`);
+        reject(error);
+      } else {
+        console.log(`Command output: ${stdout}`);
+        resolve();
+      }
+    });
+  });
+}
+
+const readJSONFile = (filePath) => {
+  const rawData = fs.readFileSync(filePath, 'utf-8');
+  return JSON.parse(rawData);
+};
+
+const writeJSONFile = (filePath, data) => {
+  const jsonString = JSON.stringify(data, null, 2);
+  fs.writeFileSync(filePath, jsonString, 'utf-8');
+};
+
+const extractAndAddObject = async (reportFile, tddLogFile) => {
+  try {
+    await runCommand(COMMAND);
+
+    const jsonData = readJSONFile(reportFile);
+
+    const passedTests = jsonData.numPassedTests;
+    const totalTests = jsonData.numTotalTests;
+    const startTime = jsonData.startTime;
+
+    const newReport = {
+      numPassedTests: passedTests,
+      numTotalTests: totalTests,
+      timestamp: startTime
+    };
+
+    const tddLog = readJSONFile(tddLogFile);
+
+    tddLog.push(newReport);
+
+    writeJSONFile(tddLogFile, tddLog);
+    console.log("Tdd log has been updated");
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const inputFilePath = path.join(__dirname, 'report.json');
+const outputFilePath = path.join(__dirname, 'tdd_log.json');
+
+extractAndAddObject(inputFilePath, outputFilePath);
+
+export { extractAndAddObject };
