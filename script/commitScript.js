@@ -28,5 +28,6 @@ const updateJsonFile = (commitId) => {
         }
     }
 };
+
 const latestCommitId = getLatestCommitId();
 updateJsonFile(latestCommitId);
